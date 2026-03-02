@@ -2,262 +2,697 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>GOOLA Blessing Generator</title>
   <style>
+    :root{
+      --bg:#f6f6f6;
+      --card:#ffffff;
+      --text:#111;
+      --muted:#666;
+      --border:#e7e7e7;
+      --shadow: 0 14px 40px rgba(0,0,0,.10);
+      --shadow2: 0 10px 26px rgba(0,0,0,.12);
+      --radius:18px;
+    }
+    *{ box-sizing:border-box; }
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      background:#f6f6f6;
-      color:#111;
+      background: radial-gradient(1200px 600px at 50% -100px, #ffffff 0%, var(--bg) 60%);
+      color:var(--text);
     }
-    .wrap{
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 24px 16px 60px;
+    .wrap{ max-width: 860px; margin:0 auto; padding: 22px 16px 60px; }
+    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .brand{ font-weight:700; letter-spacing:.2px; }
+    .tiny{ font-size:12px; color:var(--muted); }
+    .panel{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:20px;
+      box-shadow: var(--shadow);
     }
-    .card{
-      background:#fff;
-      border-radius:16px;
-      padding:22px;
-      box-shadow: 0 8px 30px rgba(0,0,0,.08);
-    }
+    h1{ margin:0 0 10px; font-size:28px; }
+    h2{ margin:0 0 12px; font-size:20px; }
+    p{ margin:8px 0; line-height:1.6; }
     .center{ text-align:center; }
-    h1{ margin: 0 0 10px; font-size: 28px; }
-    h2{ margin: 0 0 12px; font-size: 20px; }
-    p{ margin: 8px 0; line-height:1.6; }
+    .row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center; margin-top:14px; }
+    .row.left{ justify-content:flex-start; }
     .btn{
       border:0;
       padding:12px 16px;
-      border-radius:12px;
+      border-radius:14px;
       cursor:pointer;
       font-size:16px;
       background:#111;
       color:#fff;
+      transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+      box-shadow: 0 10px 26px rgba(0,0,0,.10);
     }
+    .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow2); }
+    .btn:active{ transform: translateY(0px); opacity:.92; }
     .btn.secondary{
-      background:#eee;
+      background:#efefef;
       color:#111;
+      box-shadow:none;
+    }
+    .btn.ghost{
+      background:transparent;
+      color:#111;
+      border:1px solid var(--border);
+      box-shadow:none;
     }
     .grid{
       display:grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap:10px;
-      margin-top:12px;
+      margin-top:10px;
+    }
+    @media (max-width:560px){
+      .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     .choice{
+      border:1px solid var(--border);
+      border-radius:14px;
       padding:12px 10px;
-      border-radius:12px;
-      border:1px solid #ddd;
       background:#fff;
       cursor:pointer;
-      text-align:center;
-      font-size:15px;
       user-select:none;
-      transition:.15s;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+      text-align:center;
+      line-height:1.2;
     }
-    .choice:hover{ transform: translateY(-1px); }
-    .choice.active{
-      border-color:#111;
-      box-shadow: 0 6px 18px rgba(0,0,0,.10);
-    }
-    .row{
-      display:flex;
-      gap:10px;
-      justify-content:center;
-      flex-wrap:wrap;
-      margin-top:14px;
-    }
+    .choice .en{ font-size:13px; color:var(--muted); margin-top:6px; }
+    .choice:hover{ transform: translateY(-1px); box-shadow: 0 10px 26px rgba(0,0,0,.08); }
+    .choice.active{ border-color:#111; box-shadow: 0 12px 30px rgba(0,0,0,.12); }
     .pill{
-      display:inline-block;
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
       padding:8px 12px;
       border-radius:999px;
       background:#f1f1f1;
+      border:1px solid #ededed;
       font-size:14px;
     }
-    .result{
-      font-size:20px;
-      line-height:1.6;
-      padding:16px;
-      border-radius:14px;
-      background:#fafafa;
-      border:1px solid #eee;
+    .divider{ height:1px; background:var(--border); margin:14px 0; }
+    .hint{ font-size:12px; color:var(--muted); }
+
+    /* Card / Gacha */
+    .cardStage{ display:flex; justify-content:center; margin-top:10px; }
+    .cardWrap{
+      width:min(520px, 100%);
+      perspective: 1000px;
+    }
+    .card3d{
+      position:relative;
+      width:100%;
+      border-radius:20px;
+      transform-style:preserve-3d;
+      transition: transform 900ms cubic-bezier(.2,.8,.2,1);
+    }
+    .card3d.flipped{ transform: rotateY(180deg); }
+    .cardFace{
+      backface-visibility:hidden;
+      border-radius:20px;
+      padding:18px;
+      border:1px solid var(--border);
+      background:#fff;
+      box-shadow: var(--shadow);
+      min-height: 240px;
+    }
+    .cardBack{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      gap:8px;
+    }
+    .sig{
+      font-weight:700;
+      letter-spacing:.4px;
+      font-size:18px;
+    }
+    .spark{
+      width:120px; height:120px;
+      border-radius:999px;
+      border:1px dashed #d9d9d9;
+      display:flex; align-items:center; justify-content:center;
+      animation: spin 6s linear infinite;
+    }
+    .spark span{ font-size:28px; }
+    @keyframes spin{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
+    .cardFront{
+      position:absolute;
+      inset:0;
+      transform: rotateY(180deg);
+      overflow:hidden;
+    }
+    .rarityTag{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.8);
+      font-size:13px;
+      font-weight:600;
+    }
+    .rarityDot{
+      width:10px; height:10px; border-radius:999px;
+      background:#111;
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+    }
+    .glow-common .rarityDot{ background:#111; }
+    .glow-rare .rarityDot{ background:#2a6df4; box-shadow: 0 0 18px rgba(42,109,244,.45); }
+    .glow-legendary .rarityDot{ background:#ff9f0a; box-shadow: 0 0 18px rgba(255,159,10,.45); }
+    .glow-unique .rarityDot{ background:#b10cff; box-shadow: 0 0 22px rgba(177,12,255,.55); }
+
+    .glow-rare{ box-shadow: 0 0 0 1px rgba(42,109,244,.10), var(--shadow); }
+    .glow-legendary{ box-shadow: 0 0 0 1px rgba(255,159,10,.14), 0 20px 55px rgba(255,159,10,.12); }
+    .glow-unique{ box-shadow: 0 0 0 1px rgba(177,12,255,.16), 0 20px 55px rgba(177,12,255,.12); }
+
+    .blessingCN{ font-size:20px; line-height:1.65; margin-top:12px; white-space:pre-wrap; }
+    .blessingEN{ font-size:15px; line-height:1.65; color:#222; margin-top:10px; opacity:.9; white-space:pre-wrap; }
+
+    .metaLine{
+      display:flex; flex-wrap:wrap; gap:10px;
       margin-top:12px;
-      white-space: pre-wrap;
     }
-    .footer{
-      margin-top:14px;
-      font-size:12px;
-      color:#666;
+    .metaLine .pill{ background:#fafafa; }
+
+    .shake{
+      animation: shake 520ms ease-in-out;
     }
-    @media (max-width:520px){
-      .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @keyframes shake{
+      0%{ transform: translateX(0) }
+      20%{ transform: translateX(-6px) }
+      40%{ transform: translateX(6px) }
+      60%{ transform: translateX(-4px) }
+      80%{ transform: translateX(4px) }
+      100%{ transform: translateX(0) }
     }
   </style>
 </head>
 
 <body>
   <div class="wrap">
+    <div class="topbar">
+      <div>
+        <div class="brand">GOOLA</div>
+        <div class="tiny">Blessing as a ritual · 命运抽卡式祝福</div>
+      </div>
+      <button class="btn ghost" onclick="resetAll()">Reset</button>
+    </div>
 
     <!-- STEP 1: Cover -->
-    <section id="step1" class="card center">
+    <section id="step1" class="panel center">
       <h1>GOOLA Blessing Generator</h1>
-      <p>Like a tiny game: make choices, then receive your blessing.</p>
-      <p class="footer">Click to begin.</p>
+      <p>Choose your path, make your picks, then draw a card.</p>
+      <p class="hint">先选择入口：从“颜色”进入或从“词语”进入。</p>
       <div class="row">
-        <button class="btn" onclick="goStep(2)">Start</button>
+        <button class="btn" onclick="goStep(2)">Enter</button>
       </div>
     </section>
 
-    <!-- STEP 2: Choose -->
-    <section id="step2" class="card" style="display:none;">
-      <h2>Step 1 — Choose a Color</h2>
-      <div id="colorGrid" class="grid"></div>
-
-      <h2 style="margin-top:18px;">Step 2 — Choose a Keyword</h2>
-      <div id="wordGrid" class="grid"></div>
-
+    <!-- STEP 2: Choose Entry (Color / Word) -->
+    <section id="step2" class="panel" style="display:none;">
+      <h2>Choose your entry</h2>
+      <p class="hint">你想先从哪里开始？（这一步决定顺序：先选颜色再选词语，或先选词语再选颜色）</p>
       <div class="row">
-        <span class="pill">Color: <b id="pickedColor">—</b></span>
-        <span class="pill">Word: <b id="pickedWord">—</b></span>
+        <button class="btn" onclick="chooseRoute('color')">Start with Color · 从颜色开始</button>
+        <button class="btn secondary" onclick="chooseRoute('word')">Start with Word · 从词语开始</button>
       </div>
-
-      <div class="row">
-        <button class="btn secondary" onclick="goStep(1)">Back</button>
-        <button class="btn" onclick="makeBlessing()">Generate</button>
+      <div class="divider"></div>
+      <div class="row left">
+        <button class="btn ghost" onclick="goStep(1)">Back</button>
       </div>
-
-      <p class="footer">Tip: you must pick both a color and a word.</p>
     </section>
 
-    <!-- STEP 3: Result -->
-    <section id="step3" class="card" style="display:none;">
-      <h2>Your Blessing</h2>
-      <div class="row">
-        <span class="pill">Color: <b id="finalColor">—</b></span>
-        <span class="pill">Word: <b id="finalWord">—</b></span>
+    <!-- STEP 3: Pick first -->
+    <section id="step3" class="panel" style="display:none;">
+      <h2 id="pickTitle1">Pick</h2>
+      <p class="hint" id="pickHint1"></p>
+      <div id="grid1" class="grid"></div>
+      <div class="row left">
+        <button class="btn ghost" onclick="goStep(2)">Back</button>
+        <button class="btn" onclick="confirmFirst()">Next</button>
       </div>
-      <div id="resultText" class="result">—</div>
-
-      <div class="row">
-        <button class="btn secondary" onclick="goStep(2)">Change Choices</button>
-        <button class="btn" onclick="resetAll()">Play Again</button>
-      </div>
-
-      <p class="footer">GOOLA — blessing as a ritual.</p>
+      <p class="hint">Tip：必须先点选一个选项，才可以 Next。</p>
     </section>
 
+    <!-- STEP 4: Pick second -->
+    <section id="step4" class="panel" style="display:none;">
+      <h2 id="pickTitle2">Pick</h2>
+      <p class="hint" id="pickHint2"></p>
+      <div id="grid2" class="grid"></div>
+
+      <div class="metaLine">
+        <span class="pill">Color / 颜色：<b id="pickedColor">—</b></span>
+        <span class="pill">Word / 词语：<b id="pickedWord">—</b></span>
+      </div>
+
+      <div class="row left">
+        <button class="btn ghost" onclick="goStep(3)">Back</button>
+        <button class="btn" onclick="drawCard()">Draw Card · 抽卡</button>
+      </div>
+      <p class="hint">Tip：两项都选完才能抽卡。</p>
+    </section>
+
+    <!-- STEP 5: Result -->
+    <section id="step5" class="panel" style="display:none;">
+      <h2>Card Reveal · 卡面揭晓</h2>
+      <p class="hint">有概率抽到 Rare / Legendary / Unique（独一）祝福。</p>
+
+      <div class="cardStage">
+        <div class="cardWrap">
+          <div id="card3d" class="card3d">
+            <!-- Back -->
+            <div class="cardFace cardBack">
+              <div class="spark"><span>🧿</span></div>
+              <div class="sig">GOOLA · Blessing Card</div>
+              <div class="tiny">Tap “Reveal” to flip</div>
+            </div>
+
+            <!-- Front -->
+            <div id="cardFront" class="cardFace cardFront">
+              <div class="row left" style="margin-top:0;">
+                <span id="rarityTag" class="rarityTag">
+                  <span class="rarityDot"></span>
+                  <span id="rarityText">COMMON</span>
+                </span>
+              </div>
+
+              <div class="metaLine">
+                <span class="pill">Color / 颜色：<b id="finalColor">—</b></span>
+                <span class="pill">Word / 词语：<b id="finalWord">—</b></span>
+                <span class="pill">ID：<b id="cardId">—</b></span>
+              </div>
+
+              <div id="blessingCN" class="blessingCN">—</div>
+              <div id="blessingEN" class="blessingEN">—</div>
+
+              <p class="hint" id="uniqueHint" style="display:none;">
+                Unique：本次抽到“独一祝福”（本页面同一轮不会重复抽到相同 Unique）。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn secondary" onclick="reveal()">Reveal · 翻牌</button>
+        <button class="btn ghost" onclick="goStep(4)">Change Picks · 重新选择</button>
+        <button class="btn" onclick="resetAll()">Play Again · 再来一次</button>
+      </div>
+
+      <p class="hint">双语显示：上方中文 + 下方英文。</p>
+    </section>
   </div>
 
   <script>
-    // --- DATA (you can edit these lists) ---
-    const colors = [
-      { label: "Red / 红色", value: "红色" },
-      { label: "Blue / 蓝色", value: "蓝色" },
-      { label: "Gold / 金色", value: "金色" },
-      { label: "Purple / 紫色", value: "紫色" },
-      { label: "Green / 绿色", value: "绿色" },
-      { label: "Black / 黑色", value: "黑色" }
+    // =========================
+    // 1) DATA: Colors & Words
+    // =========================
+    // 你可以随时在这里增删选项
+    const COLORS = [
+      { cn:"红色", en:"Red" },
+      { cn:"蓝色", en:"Blue" },
+      { cn:"金色", en:"Gold" },
+      { cn:"紫色", en:"Purple" },
+      { cn:"绿色", en:"Green" },
+      { cn:"黑色", en:"Black" }
     ];
 
-    const words = [
-      { label: "Peace / 平安", value: "平安" },
-      { label: "Happiness / 幸福", value: "幸福" },
-      { label: "Brave / 勇敢", value: "勇敢" },
-      { label: "Abundant / 丰盛", value: "丰盛" },
-      { label: "Wish Granted / 有求必应", value: "有求必应" },
-      { label: "Turn the Tide / 扭转乾坤", value: "扭转乾坤" }
+    const WORDS = [
+      { cn:"平安", en:"Peace" },
+      { cn:"幸福", en:"Happiness" },
+      { cn:"勇敢", en:"Bravery" },
+      { cn:"丰盛", en:"Abundance" },
+      { cn:"有求必应", en:"Wish Granted" },
+      { cn:"扭转乾坤", en:"Turn the Tide" }
     ];
 
-    // --- STATE ---
-    let selectedColor = "";
-    let selectedWord = "";
+    // =========================
+    // 2) Gacha Probabilities
+    // =========================
+    // 可改概率：总和建议=100
+    const RARITY_TABLE = [
+      { key:"common",    label:"COMMON",    weight:70.0 },
+      { key:"rare",      label:"RARE",      weight:25.0 },
+      { key:"legendary", label:"LEGENDARY", weight:4.5  },
+      { key:"unique",    label:"UNIQUE",    weight:0.5  }
+    ];
 
-    // --- INIT UI ---
-    const colorGrid = document.getElementById("colorGrid");
-    const wordGrid = document.getElementById("wordGrid");
+    // Unique（独一）祝福池：抽到 unique 时从这里随机取一条（本轮不会重复）
+    // 你可以把它写得更“独一无二”，甚至加上某些限定语
+    let UNIQUE_POOL = [
+      {
+        cn:"你不是在等待好运，你正在成为好运本身。",
+        en:"You’re not waiting for luck — you are becoming it."
+      },
+      {
+        cn:"今天你的心会给出答案：往前一步，就会看见光。",
+        en:"Today your heart will answer: take one step forward, and you’ll see the light."
+      },
+      {
+        cn:"愿你把自己拾起来，像把珠子穿回线里一样，重新完整。",
+        en:"May you gather yourself again, like beads returning to the thread — whole, once more."
+      }
+    ];
 
-    function renderChoices(){
-      colorGrid.innerHTML = "";
-      wordGrid.innerHTML = "";
+    // =========================
+    // 3) Templates by rarity
+    // =========================
+    // 这里决定“命运抽卡”的文字风格（中英分别模板）
+    const TEMPLATES = {
+      common: [
+        {
+          cn: ({c,w}) => `愿你被${c.cn}的光轻轻照亮，${w.cn}常伴。`,
+          en: ({c,w}) => `May the light of ${c.en} gently guide you, and may ${w.en} stay with you.`
+        },
+        {
+          cn: ({c,w}) => `把${c.cn}的能量送给你：愿你${w.cn}，一路顺风。`,
+          en: ({c,w}) => `Here’s the energy of ${c.en}: may you walk in ${w.en}, all the way.`
+        }
+      ],
+      rare: [
+        {
+          cn: ({c,w}) => `【稀有】${c.cn}为你开路：愿你在关键时刻，总有${w.cn}护航。`,
+          en: ({c,w}) => `[RARE] ${c.en} opens the way: may ${w.en} protect you when it matters most.`
+        },
+        {
+          cn: ({c,w}) => `【稀有】愿你把犹豫折叠成勇气，带着${c.cn}的底气去迎接${w.cn}。`,
+          en: ({c,w}) => `[RARE] May you fold hesitation into courage, and meet ${w.en} with ${c.en} confidence.`
+        }
+      ],
+      legendary: [
+        {
+          cn: ({c,w}) => `【传说】你走到哪里，哪里就会亮起：${c.cn}是你的王冠，${w.cn}是你的命运签名。`,
+          en: ({c,w}) => `[LEGENDARY] Wherever you go, it lights up: ${c.en} is your crown, and ${w.en} is your signature.`
+        },
+        {
+          cn: ({c,w}) => `【传说】愿你在风暴里仍然柔软，在黑夜里仍然发光：${c.cn}守护你，${w.cn}兑现。`,
+          en: ({c,w}) => `[LEGENDARY] May you stay gentle in storms and bright in nights: ${c.en} guards you, ${w.en} comes true.`
+        }
+      ],
+      unique: [
+        // unique 抽到后会从 UNIQUE_POOL 取；这里留空也行
+      ]
+    };
 
-      colors.forEach((c, idx) => {
-        const el = document.createElement("div");
-        el.className = "choice";
-        el.textContent = c.label;
-        el.onclick = () => pickColor(c.value, idx);
-        colorGrid.appendChild(el);
-      });
+    // =========================
+    // 4) State Machine
+    // =========================
+    let route = "";       // 'color' or 'word'
+    let firstPick = null; // chosen item object
+    let secondPick = null;
 
-      words.forEach((w, idx) => {
-        const el = document.createElement("div");
-        el.className = "choice";
-        el.textContent = w.label;
-        el.onclick = () => pickWord(w.value, idx);
-        wordGrid.appendChild(el);
-      });
-    }
+    let pickedColor = null;
+    let pickedWord = null;
 
-    function pickColor(val, idx){
-      selectedColor = val;
-      document.getElementById("pickedColor").innerText = val;
+    let firstType = "";   // 'color' or 'word'
+    let secondType = "";
 
-      [...colorGrid.children].forEach((child, i) => {
-        child.classList.toggle("active", i === idx);
-      });
-    }
+    let drawn = null;     // result object
+    let revealed = false;
 
-    function pickWord(val, idx){
-      selectedWord = val;
-      document.getElementById("pickedWord").innerText = val;
-
-      [...wordGrid.children].forEach((child, i) => {
-        child.classList.toggle("active", i === idx);
-      });
-    }
+    // =========================
+    // 5) DOM Helpers
+    // =========================
+    const $ = (id) => document.getElementById(id);
 
     function goStep(n){
-      document.getElementById("step1").style.display = (n===1) ? "block" : "none";
-      document.getElementById("step2").style.display = (n===2) ? "block" : "none";
-      document.getElementById("step3").style.display = (n===3) ? "block" : "none";
-    }
-
-    function makeBlessing(){
-      if(!selectedColor || !selectedWord){
-        alert("Please pick both a color and a word.\n请先选择颜色和关键词。");
-        return;
-      }
-
-      const templates = [
-        `愿你被${selectedColor}的光轻轻照亮，${selectedWord}常伴。`,
-        `把${selectedColor}的能量送给你：愿你${selectedWord}成真。`,
-        `今日祝福：${selectedColor}为你开路，愿你${selectedWord}，一路向前。`,
-        `愿你在每个转角都遇见温柔：${selectedColor}守护你，愿你${selectedWord}。`
-      ];
-
-      const result = templates[Math.floor(Math.random() * templates.length)];
-
-      document.getElementById("finalColor").innerText = selectedColor;
-      document.getElementById("finalWord").innerText = selectedWord;
-      document.getElementById("resultText").innerText = result;
-
-      goStep(3);
+      ["step1","step2","step3","step4","step5"].forEach((sid, idx) => {
+        $(sid).style.display = (idx === (n-1)) ? "block" : "none";
+      });
     }
 
     function resetAll(){
-      selectedColor = "";
-      selectedWord = "";
-      document.getElementById("pickedColor").innerText = "—";
-      document.getElementById("pickedWord").innerText = "—";
+      route = "";
+      firstPick = null;
+      secondPick = null;
+      pickedColor = null;
+      pickedWord = null;
+      firstType = "";
+      secondType = "";
+      drawn = null;
+      revealed = false;
 
-      // remove active styles
-      [...colorGrid.children].forEach(c => c.classList.remove("active"));
-      [...wordGrid.children].forEach(w => w.classList.remove("active"));
+      // reset unique pool each new run (你也可以注释掉这行，让 unique 更稀缺：跨轮也不会回来)
+      UNIQUE_POOL = [...UNIQUE_POOL_BACKUP];
+
+      // reset UI
+      $("pickedColor").innerText = "—";
+      $("pickedWord").innerText = "—";
+      $("finalColor").innerText = "—";
+      $("finalWord").innerText = "—";
+      $("blessingCN").innerText = "—";
+      $("blessingEN").innerText = "—";
+      $("cardId").innerText = "—";
+      $("uniqueHint").style.display = "none";
+
+      const card3d = $("card3d");
+      card3d.classList.remove("flipped");
+      $("cardFront").classList.remove("glow-common","glow-rare","glow-legendary","glow-unique");
 
       goStep(1);
     }
 
-    renderChoices();
+    // Keep a backup of unique pool for reset
+    const UNIQUE_POOL_BACKUP = JSON.parse(JSON.stringify(UNIQUE_POOL));
+
+    // =========================
+    // 6) Route (Entry Choice)
+    // =========================
+    function chooseRoute(which){
+      route = which; // 'color' or 'word'
+      firstType = route;
+      secondType = (route === "color") ? "word" : "color";
+      setupPick1();
+      goStep(3);
+    }
+
+    // =========================
+    // 7) Pick UI
+    // =========================
+    function renderGrid(gridEl, items, onPick){
+      gridEl.innerHTML = "";
+      items.forEach((item, idx) => {
+        const div = document.createElement("div");
+        div.className = "choice";
+        div.innerHTML = `<div class="cn">${item.cn}</div><div class="en">${item.en}</div>`;
+        div.onclick = () => {
+          [...gridEl.children].forEach(c => c.classList.remove("active"));
+          div.classList.add("active");
+          onPick(item);
+        };
+        gridEl.appendChild(div);
+      });
+    }
+
+    function setupPick1(){
+      firstPick = null;
+      const title = (firstType === "color")
+        ? "Pick a Color · 选择颜色"
+        : "Pick a Word · 选择词语";
+      const hint = (firstType === "color")
+        ? "你选择一个颜色作为入口能量（Color first）。"
+        : "你先选择一个关键词作为入口意图（Word first）。";
+
+      $("pickTitle1").innerText = title;
+      $("pickHint1").innerText = hint;
+
+      const grid1 = $("grid1");
+      if(firstType === "color"){
+        renderGrid(grid1, COLORS, (it) => { firstPick = it; });
+      } else {
+        renderGrid(grid1, WORDS, (it) => { firstPick = it; });
+      }
+    }
+
+    function confirmFirst(){
+      if(!firstPick){
+        $("step3").classList.add("shake");
+        setTimeout(()=>$("step3").classList.remove("shake"), 520);
+        return;
+      }
+
+      // assign to pickedColor/pickedWord depending on what firstType is
+      if(firstType === "color") pickedColor = firstPick;
+      if(firstType === "word") pickedWord = firstPick;
+
+      setupPick2();
+      goStep(4);
+    }
+
+    function setupPick2(){
+      secondPick = null;
+
+      const title = (secondType === "color")
+        ? "Pick a Color · 选择颜色"
+        : "Pick a Word · 选择词语";
+      const hint = (secondType === "color")
+        ? "补全你的颜色（能量）。"
+        : "补全你的关键词（意图）。";
+
+      $("pickTitle2").innerText = title;
+      $("pickHint2").innerText = hint;
+
+      // show already chosen
+      $("pickedColor").innerText = pickedColor ? pickedColor.cn : "—";
+      $("pickedWord").innerText = pickedWord ? pickedWord.cn : "—";
+
+      const grid2 = $("grid2");
+      if(secondType === "color"){
+        renderGrid(grid2, COLORS, (it) => {
+          secondPick = it;
+          pickedColor = it;
+          $("pickedColor").innerText = pickedColor.cn;
+        });
+      } else {
+        renderGrid(grid2, WORDS, (it) => {
+          secondPick = it;
+          pickedWord = it;
+          $("pickedWord").innerText = pickedWord.cn;
+        });
+      }
+    }
+
+    // =========================
+    // 8) Gacha Draw
+    // =========================
+    function weightedRandom(table){
+      const total = table.reduce((s, x) => s + x.weight, 0);
+      let r = Math.random() * total;
+      for(const item of table){
+        r -= item.weight;
+        if(r <= 0) return item;
+      }
+      return table[table.length - 1];
+    }
+
+    function makeId(){
+      // short id: time + random
+      const t = Date.now().toString(36).slice(-6);
+      const r = Math.random().toString(36).slice(2,6);
+      return (t + "-" + r).toUpperCase();
+    }
+
+    function drawCard(){
+      if(!pickedColor || !pickedWord){
+        $("step4").classList.add("shake");
+        setTimeout(()=>$("step4").classList.remove("shake"), 520);
+        return;
+      }
+
+      const rarity = weightedRandom(RARITY_TABLE); // {key,label,weight}
+      const c = pickedColor;
+      const w = pickedWord;
+
+      let cnText = "";
+      let enText = "";
+      let isUnique = false;
+
+      if(rarity.key === "unique"){
+        // If unique pool empty, fallback to legendary
+        if(UNIQUE_POOL.length === 0){
+          const fallback = weightedRandom(RARITY_TABLE.filter(x=>x.key!=="unique"));
+          return drawCardWithForcedRarity(fallback.key);
+        }
+        isUnique = true;
+        const idx = Math.floor(Math.random() * UNIQUE_POOL.length);
+        const pick = UNIQUE_POOL.splice(idx, 1)[0]; // remove => unique per run
+        cnText = "【独一】" + pick.cn;
+        enText = "[UNIQUE] " + pick.en;
+      } else {
+        const list = TEMPLATES[rarity.key];
+        const tpl = list[Math.floor(Math.random() * list.length)];
+        cnText = tpl.cn({c,w});
+        enText = tpl.en({c,w});
+      }
+
+      drawn = {
+        id: makeId(),
+        rarityKey: rarity.key,
+        rarityLabel: rarity.label,
+        color: c,
+        word: w,
+        cn: cnText,
+        en: enText,
+        isUnique
+      };
+
+      // Fill UI
+      $("finalColor").innerText = drawn.color.cn;
+      $("finalWord").innerText = drawn.word.cn;
+      $("cardId").innerText = drawn.id;
+      $("blessingCN").innerText = drawn.cn;
+      $("blessingEN").innerText = drawn.en;
+
+      // Rarity styling
+      $("rarityText").innerText = drawn.rarityLabel;
+      $("uniqueHint").style.display = drawn.isUnique ? "block" : "none";
+
+      const front = $("cardFront");
+      front.classList.remove("glow-common","glow-rare","glow-legendary","glow-unique");
+      front.classList.add("glow-" + drawn.rarityKey);
+
+      // reset reveal state
+      revealed = false;
+      $("card3d").classList.remove("flipped");
+
+      goStep(5);
+    }
+
+    function drawCardWithForcedRarity(key){
+      const c = pickedColor;
+      const w = pickedWord;
+      const list = TEMPLATES[key];
+      const tpl = list[Math.floor(Math.random() * list.length)];
+      drawn = {
+        id: makeId(),
+        rarityKey: key,
+        rarityLabel: key.toUpperCase(),
+        color: c,
+        word: w,
+        cn: tpl.cn({c,w}),
+        en: tpl.en({c,w}),
+        isUnique: false
+      };
+
+      $("finalColor").innerText = drawn.color.cn;
+      $("finalWord").innerText = drawn.word.cn;
+      $("cardId").innerText = drawn.id;
+      $("blessingCN").innerText = drawn.cn;
+      $("blessingEN").innerText = drawn.en;
+
+      $("rarityText").innerText = drawn.rarityLabel;
+      $("uniqueHint").style.display = "none";
+
+      const front = $("cardFront");
+      front.classList.remove("glow-common","glow-rare","glow-legendary","glow-unique");
+      front.classList.add("glow-" + drawn.rarityKey);
+
+      revealed = false;
+      $("card3d").classList.remove("flipped");
+
+      goStep(5);
+    }
+
+    function reveal(){
+      // Flip animation
+      const card = $("card3d");
+      if(!drawn) return;
+      revealed = !revealed;
+      card.classList.toggle("flipped", revealed);
+    }
+
+    // Start at cover
+    goStep(1);
   </script>
 </body>
 </html>
