@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>GOOLA 祝福生成器</title>
+</head>
+<body>
+  <h1>GOOLA Blessing Generator</h1>
+
+  <p>选择颜色与关键词，生成一句祝福。</p>
+
+  <label>颜色：
+    <select id="color">
+      <option value="红色">红色</option>
+      <option value="蓝色">蓝色</option>
+      <option value="金色">金色</option>
+      <option value="紫色">紫色</option>
+      <option value="绿色">绿色</option>
+    </select>
+  </label>
+
+  <br><br>
+
+  <label>词语：
+    <select id="word">
+      <option value="平安">平安</option>
+      <option value="幸福">幸福</option>
+      <option value="勇敢">勇敢</option>
+      <option value="丰盛">丰盛</option>
+      <option value="有求必应">有求必应</option>
+    </select>
+  </label>
+
+  <br><br>
+
+  <button onclick="generate()">生成祝福</button>
+
+  <h2>你的祝福：</h2>
+  <p id="result">（这里会显示生成结果）</p>
+
+  <script>
+    function generate() {
+      const color = document.getElementById('color').value;
+      const word = document.getElementById('word').value;
+
+      const templates = [
+        `愿你如${color}般闪耀，${word}常伴。`,
+        `把${color}的能量送给你：愿你${word}，一路顺风。`,
+        `今日祝福：${color}为你开路，愿你${word}成真。`,
+        `愿你的世界被${color}轻轻照亮，愿你${word}。`
+      ];
+
+      const result = templates[Math.floor(Math.random() * templates.length)];
+      document.getElementById('result').innerText = result;
+    }
+  </script>
+</body>
+</html>
