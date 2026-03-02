@@ -1,58 +1,263 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>GOOLA 祝福生成器</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GOOLA Blessing Generator</title>
+  <style>
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:#f6f6f6;
+      color:#111;
+    }
+    .wrap{
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 24px 16px 60px;
+    }
+    .card{
+      background:#fff;
+      border-radius:16px;
+      padding:22px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.08);
+    }
+    .center{ text-align:center; }
+    h1{ margin: 0 0 10px; font-size: 28px; }
+    h2{ margin: 0 0 12px; font-size: 20px; }
+    p{ margin: 8px 0; line-height:1.6; }
+    .btn{
+      border:0;
+      padding:12px 16px;
+      border-radius:12px;
+      cursor:pointer;
+      font-size:16px;
+      background:#111;
+      color:#fff;
+    }
+    .btn.secondary{
+      background:#eee;
+      color:#111;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .choice{
+      padding:12px 10px;
+      border-radius:12px;
+      border:1px solid #ddd;
+      background:#fff;
+      cursor:pointer;
+      text-align:center;
+      font-size:15px;
+      user-select:none;
+      transition:.15s;
+    }
+    .choice:hover{ transform: translateY(-1px); }
+    .choice.active{
+      border-color:#111;
+      box-shadow: 0 6px 18px rgba(0,0,0,.10);
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+    .pill{
+      display:inline-block;
+      padding:8px 12px;
+      border-radius:999px;
+      background:#f1f1f1;
+      font-size:14px;
+    }
+    .result{
+      font-size:20px;
+      line-height:1.6;
+      padding:16px;
+      border-radius:14px;
+      background:#fafafa;
+      border:1px solid #eee;
+      margin-top:12px;
+      white-space: pre-wrap;
+    }
+    .footer{
+      margin-top:14px;
+      font-size:12px;
+      color:#666;
+    }
+    @media (max-width:520px){
+      .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
 </head>
+
 <body>
-  <h1>GOOLA Blessing Generator</h1>
+  <div class="wrap">
 
-  <p>选择颜色与关键词，生成一句祝福。</p>
+    <!-- STEP 1: Cover -->
+    <section id="step1" class="card center">
+      <h1>GOOLA Blessing Generator</h1>
+      <p>Like a tiny game: make choices, then receive your blessing.</p>
+      <p class="footer">Click to begin.</p>
+      <div class="row">
+        <button class="btn" onclick="goStep(2)">Start</button>
+      </div>
+    </section>
 
-  <label>颜色：
-    <select id="color">
-      <option value="红色">红色</option>
-      <option value="蓝色">蓝色</option>
-      <option value="金色">金色</option>
-      <option value="紫色">紫色</option>
-      <option value="绿色">绿色</option>
-    </select>
-  </label>
+    <!-- STEP 2: Choose -->
+    <section id="step2" class="card" style="display:none;">
+      <h2>Step 1 — Choose a Color</h2>
+      <div id="colorGrid" class="grid"></div>
 
-  <br><br>
+      <h2 style="margin-top:18px;">Step 2 — Choose a Keyword</h2>
+      <div id="wordGrid" class="grid"></div>
 
-  <label>词语：
-    <select id="word">
-      <option value="平安">平安</option>
-      <option value="幸福">幸福</option>
-      <option value="勇敢">勇敢</option>
-      <option value="丰盛">丰盛</option>
-      <option value="有求必应">有求必应</option>
-    </select>
-  </label>
+      <div class="row">
+        <span class="pill">Color: <b id="pickedColor">—</b></span>
+        <span class="pill">Word: <b id="pickedWord">—</b></span>
+      </div>
 
-  <br><br>
+      <div class="row">
+        <button class="btn secondary" onclick="goStep(1)">Back</button>
+        <button class="btn" onclick="makeBlessing()">Generate</button>
+      </div>
 
-  <button onclick="generate()">生成祝福</button>
+      <p class="footer">Tip: you must pick both a color and a word.</p>
+    </section>
 
-  <h2>你的祝福：</h2>
-  <p id="result">（这里会显示生成结果）</p>
+    <!-- STEP 3: Result -->
+    <section id="step3" class="card" style="display:none;">
+      <h2>Your Blessing</h2>
+      <div class="row">
+        <span class="pill">Color: <b id="finalColor">—</b></span>
+        <span class="pill">Word: <b id="finalWord">—</b></span>
+      </div>
+      <div id="resultText" class="result">—</div>
+
+      <div class="row">
+        <button class="btn secondary" onclick="goStep(2)">Change Choices</button>
+        <button class="btn" onclick="resetAll()">Play Again</button>
+      </div>
+
+      <p class="footer">GOOLA — blessing as a ritual.</p>
+    </section>
+
+  </div>
 
   <script>
-    function generate() {
-      const color = document.getElementById('color').value;
-      const word = document.getElementById('word').value;
+    // --- DATA (you can edit these lists) ---
+    const colors = [
+      { label: "Red / 红色", value: "红色" },
+      { label: "Blue / 蓝色", value: "蓝色" },
+      { label: "Gold / 金色", value: "金色" },
+      { label: "Purple / 紫色", value: "紫色" },
+      { label: "Green / 绿色", value: "绿色" },
+      { label: "Black / 黑色", value: "黑色" }
+    ];
+
+    const words = [
+      { label: "Peace / 平安", value: "平安" },
+      { label: "Happiness / 幸福", value: "幸福" },
+      { label: "Brave / 勇敢", value: "勇敢" },
+      { label: "Abundant / 丰盛", value: "丰盛" },
+      { label: "Wish Granted / 有求必应", value: "有求必应" },
+      { label: "Turn the Tide / 扭转乾坤", value: "扭转乾坤" }
+    ];
+
+    // --- STATE ---
+    let selectedColor = "";
+    let selectedWord = "";
+
+    // --- INIT UI ---
+    const colorGrid = document.getElementById("colorGrid");
+    const wordGrid = document.getElementById("wordGrid");
+
+    function renderChoices(){
+      colorGrid.innerHTML = "";
+      wordGrid.innerHTML = "";
+
+      colors.forEach((c, idx) => {
+        const el = document.createElement("div");
+        el.className = "choice";
+        el.textContent = c.label;
+        el.onclick = () => pickColor(c.value, idx);
+        colorGrid.appendChild(el);
+      });
+
+      words.forEach((w, idx) => {
+        const el = document.createElement("div");
+        el.className = "choice";
+        el.textContent = w.label;
+        el.onclick = () => pickWord(w.value, idx);
+        wordGrid.appendChild(el);
+      });
+    }
+
+    function pickColor(val, idx){
+      selectedColor = val;
+      document.getElementById("pickedColor").innerText = val;
+
+      [...colorGrid.children].forEach((child, i) => {
+        child.classList.toggle("active", i === idx);
+      });
+    }
+
+    function pickWord(val, idx){
+      selectedWord = val;
+      document.getElementById("pickedWord").innerText = val;
+
+      [...wordGrid.children].forEach((child, i) => {
+        child.classList.toggle("active", i === idx);
+      });
+    }
+
+    function goStep(n){
+      document.getElementById("step1").style.display = (n===1) ? "block" : "none";
+      document.getElementById("step2").style.display = (n===2) ? "block" : "none";
+      document.getElementById("step3").style.display = (n===3) ? "block" : "none";
+    }
+
+    function makeBlessing(){
+      if(!selectedColor || !selectedWord){
+        alert("Please pick both a color and a word.\n请先选择颜色和关键词。");
+        return;
+      }
 
       const templates = [
-        `愿你如${color}般闪耀，${word}常伴。`,
-        `把${color}的能量送给你：愿你${word}，一路顺风。`,
-        `今日祝福：${color}为你开路，愿你${word}成真。`,
-        `愿你的世界被${color}轻轻照亮，愿你${word}。`
+        `愿你被${selectedColor}的光轻轻照亮，${selectedWord}常伴。`,
+        `把${selectedColor}的能量送给你：愿你${selectedWord}成真。`,
+        `今日祝福：${selectedColor}为你开路，愿你${selectedWord}，一路向前。`,
+        `愿你在每个转角都遇见温柔：${selectedColor}守护你，愿你${selectedWord}。`
       ];
 
       const result = templates[Math.floor(Math.random() * templates.length)];
-      document.getElementById('result').innerText = result;
+
+      document.getElementById("finalColor").innerText = selectedColor;
+      document.getElementById("finalWord").innerText = selectedWord;
+      document.getElementById("resultText").innerText = result;
+
+      goStep(3);
     }
+
+    function resetAll(){
+      selectedColor = "";
+      selectedWord = "";
+      document.getElementById("pickedColor").innerText = "—";
+      document.getElementById("pickedWord").innerText = "—";
+
+      // remove active styles
+      [...colorGrid.children].forEach(c => c.classList.remove("active"));
+      [...wordGrid.children].forEach(w => w.classList.remove("active"));
+
+      goStep(1);
+    }
+
+    renderChoices();
   </script>
 </body>
 </html>
